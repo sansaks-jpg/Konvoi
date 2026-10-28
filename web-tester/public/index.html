@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konvoi Web Tester & Simulator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #09090b;
+      color: #f4f4f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #27272a;
+      padding-bottom: 16px;
+    }
+    .brand {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      color: #f4f4f5;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .badge-primary { background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8; }
+    .badge-success { background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.35); color: #4ade80; }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fbbf24; }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.35); color: #f87171; }
+    .badge-neutral { background: #27272a; border-color: #3f3f46; color: #a1a1aa; }
+
+    .card {
+      background-color: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: #f4f4f5;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #f4f4f5;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      height: 42px;
+      background-color: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 14px;
+      color: #f4f4f5;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      border-color: #38bdf8;
+    }
+    .help-text {
+      font-size: 12px;
+      color: #a1a1aa;
+      margin-top: 4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: #38bdf8; color: #09090b; }
+    .btn-primary:hover { background: #0284c7; color: #ffffff; }
+    .btn-secondary { background: #27272a; border-color: #3f3f46; color: #f4f4f5; }
+    .btn-secondary:hover { background: #3f3f46; }
+    .btn-danger { background: #ef4444; color: #ffffff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .roster-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .roster-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .roster-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .roster-meta {
+      font-size: 12px;
+      color: #a1a1aa;
+      margin-top: 2px;
+    }
+
+    .log-box {
+      background: #000000;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      height: 180px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .audio-meter {
+      height: 8px;
+      background: #27272a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .audio-meter-fill {
+      height: 100%;
+      width: 0%;
+      background: #22c55e;
+      transition: width 0.1s ease-out;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .nav-tab {
+      padding: 8px 16px;
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      color: #a1a1aa;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .nav-tab.active {
+      background: #27272a;
+      border-color: #38bdf8;
+      color: #f4f4f5;
+    }
+
+    .qr-box {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    .info-callout {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #bae6fd;
+    }
+  </style>
+  <script src="/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <div class="brand">Konvoi Web Tester & Simulator</div>
+        <div style="font-size: 13px; color: #a1a1aa; margin-top: 2px;">
+          Uji interkom suara WebRTC & simulasi posisi GPS dari Laptop ke HP (1 HP sudah cukup!)
+        </div>
+      </div>
+      <div>
+        <span id="globalStatus" class="badge badge-neutral">Standby</span>
+      </div>
+    </header>
+
+    <div class="info-callout">
+      <strong>Info Jaringan Wi-Fi:</strong> Laptop ini terdeteksi pada IP <code id="lblLocalIp" style="background: #000; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">Memuat...</code>. Pastikan HP terhubung ke Wi-Fi yang sama!
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tabGuest" onclick="setTab('guest')">
+        1. Laptop sebagai Tamu (Hubungkan ke HP Host)
+      </button>
+      <button class="nav-tab" id="tabHost" onclick="setTab('host')">
+        2. Laptop sebagai Host (HP Bergabung ke Laptop)
+      </button>
+    </div>
+
+    <!-- TAB 1: GUEST MODE (Connect to Phone) -->
+    <div id="viewGuest">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Koneksi ke Ruangan HP (HP sebagai Host)</div>
+            <div style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">
+              Buka aplikasi Konvoi di HP &gt; Pilih &quot;Buat Ruangan&quot; &gt; Buka kartu &quot;Detail Teknis (IP, Port, PIN)&quot;.
+            </div>
+          </div>
+          <span id="guestBadge" class="badge badge-neutral">Terputus</span>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>IP Wi-Fi HP Android</label>
+            <input type="text" id="phoneIp" value="192.168.100.10" />
+            <div class="help-text">IP Wi-Fi HP Anda di jaringan rumah.</div>
+          </div>
+          <div class="form-group">
+            <label>Port Ruangan di HP</label>
+            <input type="number" id="phonePort" placeholder="Contoh: 64660 (lihat di Detail Teknis HP)" />
+            <div class="help-text">Angka Port yang muncul di layar host HP Anda.</div>
+          </div>
+          <div class="form-group">
+            <label>PIN Ruangan (6 Angka)</label>
+            <input type="text" id="phonePin" placeholder="Contoh: 123456" maxlength="6" />
+            <div class="help-text">PIN 6 angka dari layar HP.</div>
+          </div>
+          <div class="form-group">
+            <label>Nama Pengendara Laptop</label>
+            <input type="text" id="laptopName" value="Laptop Rider" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnConnect" onclick="handleConnectGuest()">
+            Hubungkan ke HP
+          </button>
+          <button class="btn btn-danger" id="btnDisconnect" onclick="handleDisconnectGuest()" disabled>
+            Putuskan Koneksi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: HOST MODE (Laptop is Host) -->
+    <div id="viewHost" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Laptop sebagai Host (HP Bergabung ke Laptop)</div>
+            <div style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">
+              Jalankan host di laptop, lalu arahkan kamera HP untuk scan QR code secara instan!
+            </div>
+          </div>
+          <span id="hostBadge" class="badge badge-neutral">Mati</span>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Port TCP Host</label>
+            <input type="number" id="hostPortInput" value="50000" />
+          </div>
+          <div class="form-group">
+            <label>PIN Ruangan (6 Angka)</label>
+            <input type="text" id="hostPinInput" value="123456" maxlength="6" />
+          </div>
+          <div class="form-group">
+            <label>Nama Ruangan</label>
+            <input type="text" id="hostRoomNameInput" value="Konvoi Laptop Host" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnStartHost" onclick="handleStartHost()">
+            Mulai Server Host di Laptop
+          </button>
+          <button class="btn btn-danger" id="btnStopHost" onclick="handleStopHost()" disabled>
+            Hentikan Server
+          </button>
+        </div>
+
+        <!-- QR Code Display for Host Mode -->
+        <div id="hostQrSection" style="display: none; margin-top: 20px; border-top: 1px solid #27272a; padding-top: 16px; text-align: center;">
+          <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">QR Code Scan Cepat Kamera HP</div>
+          <div style="font-size: 13px; color: #a1a1aa; margin-bottom: 12px;">
+            Buka Konvoi di HP &gt; Gabung Ruangan &gt; Ketuk tombol <strong>&quot;Scan QR Code Kamera (Tanpa PIN)&quot;</strong> dan arahkan ke kode ini:
+          </div>
+          <div class="qr-box">
+            <div id="qrcodeContainer"></div>
+          </div>
+          <div style="font-size: 12px; color: #38bdf8; margin-top: 6px;">
+            Atau input manual di HP: IP <span id="lblHostIpText"></span> &middot; Port <span id="lblHostPortText"></span> &middot; PIN <span id="lblHostPinText"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROOM & PARTICIPANTS VIEW (Active when connected) -->
+    <div id="roomSection" class="card" style="display: none;">
+      <div class="card-header">
+        <div>
+          <div class="card-title" id="roomTitle">Ruangan</div>
+          <div style="font-size: 12px; color: #a1a1aa; margin-top: 2px;" id="roomSubtitle"></div>
+        </div>
+        <span class="badge badge-success">Terhubung Aktif</span>
+      </div>
+
+      <!-- Live Intercom Voice Control -->
+      <div style="margin-top: 14px; padding: 14px; background: #27272a; border-radius: 8px; border: 1px solid #3f3f46;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Interkom Suara WebRTC (P2P Mesh)</div>
+            <div style="font-size: 12px; color: #a1a1aa;">Bicara langsung antara mikrofon laptop & HP lewat jaringan lokal</div>
+          </div>
+          <span id="voiceBadge" class="badge badge-neutral">Suara Mati</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnVoiceToggle" onclick="toggleVoice()">
+            Mulai Suara (Nyalakan Mic Laptop)
+          </button>
+          <button class="btn btn-secondary" id="btnMuteToggle" onclick="toggleMute()" disabled>
+            Bisukan Mic
+          </button>
+        </div>
+        <div class="audio-meter">
+          <div id="audioMeterFill" class="audio-meter-fill"></div>
+        </div>
+      </div>
+
+      <!-- Live GPS & Distance Simulator -->
+      <div style="margin-top: 14px; padding: 14px; background: #27272a; border-radius: 8px; border: 1px solid #3f3f46;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Simulasi Lokasi GPS &amp; Jarak Konvoi</div>
+            <div style="font-size: 12px; color: #a1a1aa;">Pancarkan koordinat laptop ke peta HP untuk uji peta offline &amp; kalkulasi jarak</div>
+          </div>
+          <span id="gpsBadge" class="badge badge-neutral">GPS Mati</span>
+        </div>
+
+        <div class="grid-2" style="margin-top: 12px;">
+          <div class="form-group">
+            <label>Preset Lokasi</label>
+            <select id="presetLocation" onchange="applyPreset()">
+              <option value="monas">Monas, Jakarta (-6.17539, 106.82715)</option>
+              <option value="bundaran_hi">Bundaran HI, Jakarta (-6.19500, 106.82300)</option>
+              <option value="senayan">GBK Senayan, Jakarta (-6.21850, 106.80200)</option>
+              <option value="bromo">Gunung Bromo (-7.94249, 112.95301)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Kecepatan Simulasi</label>
+            <input type="number" id="gpsSpeed" value="45" />
+            <div class="help-text">km/jam</div>
+          </div>
+          <div class="form-group">
+            <label>Latitude</label>
+            <input type="number" step="0.00001" id="gpsLat" value="-6.17539" />
+          </div>
+          <div class="form-group">
+            <label>Longitude</label>
+            <input type="number" step="0.00001" id="gpsLon" value="106.82715" />
+          </div>
+        </div>
+
+        <div id="distanceBadgeRow" style="margin-top: 4px; font-size: 13px; color: #38bdf8; font-weight: 600;"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btnGpsToggle" onclick="toggleGpsSharing()">
+            Mulai Berbagi Lokasi GPS
+          </button>
+          <button class="btn btn-secondary" onclick="sendGpsUpdateNow()">
+            Kirim Koordinat Sekali
+          </button>
+        </div>
+      </div>
+
+      <!-- Roster -->
+      <div style="margin-top: 20px;">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px;">Daftar Peserta di Ruangan</div>
+        <div id="rosterList" class="roster-list"></div>
+      </div>
+    </div>
+
+    <!-- Live Event Log -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Log Aktivitas Protokol NDJSON</div>
+        <button class="btn btn-secondary" style="min-height: 30px; padding: 0 10px; font-size: 12px;" onclick="clearLogs()">
+          Bersihkan Log
+        </button>
+      </div>
+      <div id="logBox" class="log-box"></div>
+    </div>
+  </div>
+
+  <audio id="remoteAudio" autoplay playsinline></audio>
+
+  <script>
+    let currentTab = 'guest';
+    let roomState = null;
+    let sse = null;
+    let localIp = '192.168.100.11';
+
+    // WebRTC
+    let localStream = null;
+    let peerConnections = {}; // peerId -> RTCPeerConnection
+    let isVoiceActive = false;
+    let isMuted = false;
+    let audioContext = null;
+    let analyser = null;
+
+    // GPS Simulation
+    let isGpsSharing = false;
+    let gpsInterval = null;
+
+    const PRESETS = {
+      monas: { lat: -6.17539, lon: 106.82715 },
+      bundaran_hi: { lat: -6.19500, lon: 106.82300 },
+      senayan: { lat: -6.21850, lon: 106.80200 },
+      bromo: { lat: -7.94249, lon: 112.95301 },
+    };
+
+    function applyPreset() {
+      const val = document.getElementById('presetLocation').value;
+      if (PRESETS[val]) {
+        document.getElementById('gpsLat').value = PRESETS[val].lat;
+        document.getElementById('gpsLon').value = PRESETS[val].lon;
+      }
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabGuest').classList.toggle('active', tab === 'guest');
+      document.getElementById('tabHost').classList.toggle('active', tab === 'host');
+      document.getElementById('viewGuest').style.display = tab === 'guest' ? 'block' : 'none';
+      document.getElementById('viewHost').style.display = tab === 'host' ? 'block' : 'none';
+    }
+
+    async function loadInfo() {
+      try {
+        const res = await fetch('/api/info');
+        const data = await res.json();
+        if (data.localIp) {
+          localIp = data.localIp;
+          document.getElementById('lblLocalIp').textContent = localIp;
+        }
+        if (data.phoneCandidateIp && !document.getElementById('phoneIp').value) {
+          document.getElementById('phoneIp').value = data.phoneCandidateIp;
+        }
+      } catch (e) {
+        console.warn('Gagal memuat info jaringan:', e);
+      }
+    }
+
+    function initSSE() {
+      sse = new EventSource('/api/events');
+      sse.onmessage = e => {
+        try {
+          const payload = JSON.parse(e.data);
+          handleSSEMessage(payload);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      sse.onerror = () => {
+        console.warn('SSE disconnected, retrying...');
+      };
+    }
+
+    function handleSSEMessage({ type, data }) {
+      if (type === 'init') {
+        if (data.localIp) {
+          localIp = data.localIp;
+          document.getElementById('lblLocalIp').textContent = localIp;
+        }
+        if (data.guestState && data.guestState.status === 'connected') {
+          updateGuestUI(data.guestState);
+        } else if (data.hostState && data.hostState.running) {
+          updateHostUI(data.hostState);
+        }
+      } else if (type === 'log') {
+        appendLog(data);
+      } else if (type === 'state') {
+        if (data.mode === 'guest') updateGuestUI(data.state);
+        if (data.mode === 'host') updateHostUI(data.state);
+      } else if (type === 'voice_state') {
+        handlePeerVoiceState(data.participant, data.joined);
+      } else if (type === 'voice_signal') {
+        handleIncomingVoiceSignal(data.fromId, data.signal);
+      } else if (type === 'location_update') {
+        updateDistanceDisplay(data.participantId, data.location);
+      }
+    }
+
+    function appendLog(line) {
+      const box = document.getElementById('logBox');
+      box.textContent += line + '\n';
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('logBox').textContent = '';
+    }
+
+    function updateGuestUI(state) {
+      roomState = state;
+      const connected = state.status === 'connected';
+      document.getElementById('guestBadge').className =
+        'badge ' + (connected ? 'badge-success' : state.status === 'connecting' ? 'badge-warning' : 'badge-neutral');
+      document.getElementById('guestBadge').textContent =
+        connected ? 'Terhubung' : state.status === 'connecting' ? 'Menghubungkan…' : 'Terputus';
+
+      document.getElementById('btnConnect').disabled = connected || state.status === 'connecting';
+      document.getElementById('btnDisconnect').disabled = !connected;
+
+      if (connected) {
+        document.getElementById('globalStatus').className = 'badge badge-success';
+        document.getElementById('globalStatus').textContent = 'Tamu Terhubung';
+        document.getElementById('roomSection').style.display = 'block';
+        document.getElementById('roomTitle').textContent = state.roomName || 'Ruangan HP';
+        document.getElementById('roomSubtitle').textContent = `Room ID: ${state.roomId} · Self ID: ${state.selfId}`;
+        renderRoster(state.participants, state.voiceParticipants, state.locations);
+      } else if (!document.getElementById('btnStopHost').disabled) {
+        // Host still running
+      } else {
+        document.getElementById('globalStatus').className = 'badge badge-neutral';
+        document.getElementById('globalStatus').textContent = 'Standby';
+        document.getElementById('roomSection').style.display = 'none';
+      }
+    }
+
+    function updateHostUI(state) {
+      roomState = {
+        ...state,
+        selfId: 'laptop-host',
+      };
+      const running = state.running;
+      document.getElementById('hostBadge').className = 'badge ' + (running ? 'badge-success' : 'badge-neutral');
+      document.getElementById('hostBadge').textContent = running ? `Aktif (${state.port})` : 'Mati';
+      document.getElementById('btnStartHost').disabled = running;
+      document.getElementById('btnStopHost').disabled = !running;
+
+      const qrSec = document.getElementById('hostQrSection');
+      if (running) {
+        document.getElementById('globalStatus').className = 'badge badge-success';
+        document.getElementById('globalStatus').textContent = 'Host Aktif';
+        document.getElementById('roomSection').style.display = 'block';
+        document.getElementById('roomTitle').textContent = state.roomName;
+        document.getElementById('roomSubtitle').textContent = `Host Port: ${state.port} · PIN: ${state.pin}`;
+        renderRoster(state.participants, state.voiceParticipants, state.locations);
+
+        qrSec.style.display = 'block';
+        document.getElementById('lblHostIpText').textContent = localIp;
+        document.getElementById('lblHostPortText').textContent = state.port;
+        document.getElementById('lblHostPinText').textContent = state.pin;
+
+        const qrUrl = `konvoi://join?host=${encodeURIComponent(localIp)}&port=${encodeURIComponent(state.port)}&pin=${encodeURIComponent(state.pin)}&room=${encodeURIComponent(state.roomId)}&name=${encodeURIComponent(state.roomName)}`;
+        renderHostQr(qrUrl);
+      } else {
+        qrSec.style.display = 'none';
+        if (guestState && guestState.status === 'connected') {
+          // Guest still running
+        } else {
+          document.getElementById('globalStatus').className = 'badge badge-neutral';
+          document.getElementById('globalStatus').textContent = 'Standby';
+          document.getElementById('roomSection').style.display = 'none';
+        }
+      }
+    }
+
+    function renderHostQr(qrString) {
+      const container = document.getElementById('qrcodeContainer');
+      container.innerHTML = '';
+      if (window.QRCode) {
+        new QRCode(container, {
+          text: qrString,
+          width: 180,
+          height: 180,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      }
+    }
+
+    function renderRoster(participants = [], voiceList = [], locations = {}) {
+      const container = document.getElementById('rosterList');
+      container.innerHTML = '';
+      participants.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'roster-item';
+        const inVoice = voiceList.some(v => v.participantId === p.id);
+        const loc = locations[p.id]?.location;
+
+        let locText = 'GPS: Nonaktif';
+        if (loc) {
+          locText = `GPS: ${loc.lat.toFixed(4)}, ${loc.lon.toFixed(4)} (${Math.round(loc.accuracy || 10)}m)`;
+        }
+
+        item.innerHTML = `
+          <div>
+            <div class="roster-name">${escapeHtml(p.displayName)}</div>
+            <div class="roster-meta">ID: ${escapeHtml(p.id)} · ${locText}</div>
+          </div>
+          <div>
+            <span class="badge ${inVoice ? 'badge-success' : 'badge-neutral'}">${inVoice ? 'Suara Aktif' : 'Tidak di Suara'}</span>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // -------------------------------------------------------------
+    // GUEST ACTIONS
+    // -------------------------------------------------------------
+    async function handleConnectGuest() {
+      const host = document.getElementById('phoneIp').value.trim();
+      const port = document.getElementById('phonePort').value.trim();
+      const pin = document.getElementById('phonePin').value.trim();
+      const displayName = document.getElementById('laptopName').value.trim();
+
+      if (!host) {
+        alert('Masukkan IP Wi-Fi HP Android Anda.');
+        return;
+      }
+      if (!port) {
+        alert('Masukkan Port dari layar Detail Teknis di HP.');
+        return;
+      }
+      if (!pin || pin.length !== 6) {
+        alert('Masukkan PIN 6 angka dari layar HP.');
+        return;
+      }
+
+      await fetch('/api/connect-guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host, port, pin, displayName }),
+      });
+    }
+
+    async function handleDisconnectGuest() {
+      if (isVoiceActive) toggleVoice();
+      if (isGpsSharing) toggleGpsSharing();
+      await fetch('/api/disconnect-guest', { method: 'POST' });
+    }
+
+    // -------------------------------------------------------------
+    // HOST ACTIONS
+    // -------------------------------------------------------------
+    async function handleStartHost() {
+      const port = document.getElementById('hostPortInput').value.trim();
+      const pin = document.getElementById('hostPinInput').value.trim();
+      const roomName = document.getElementById('hostRoomNameInput').value.trim();
+
+      if (!pin || pin.length !== 6) {
+        alert('PIN wajib 6 angka (contoh: 123456) sesuai standar protokol Konvoi.');
+        return;
+      }
+
+      await fetch('/api/start-host', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ port: Number(port) || 50000, pin, roomName }),
+      });
+    }
+
+    async function handleStopHost() {
+      await fetch('/api/stop-host', { method: 'POST' });
+    }
+
+    // -------------------------------------------------------------
+    // WEBRTC INTERCOM VOICE
+    // -------------------------------------------------------------
+    function getSelfId() {
+      if (roomState) return roomState.selfId || 'laptop-host';
+      return 'laptop-host';
+    }
+
+    async function toggleVoice() {
+      if (isVoiceActive) {
+        // Leave Voice
+        isVoiceActive = false;
+        document.getElementById('btnVoiceToggle').textContent = 'Mulai Suara (Nyalakan Mic Laptop)';
+        document.getElementById('voiceBadge').textContent = 'Suara Mati';
+        document.getElementById('voiceBadge').className = 'badge badge-neutral';
+        document.getElementById('btnMuteToggle').disabled = true;
+
+        if (localStream) {
+          localStream.getTracks().forEach(t => t.stop());
+          localStream = null;
+        }
+        for (const peerId in peerConnections) {
+          try { peerConnections[peerId].close(); } catch {}
+        }
+        peerConnections = {};
+
+        await fetch('/api/send-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'VOICE_LEAVE' }),
+        });
+      } else {
+        // Join Voice
+        try {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Akses mikrofon hanya diizinkan di URL http://localhost:3000 atau koneksi HTTPS yang aman.');
+            return;
+          }
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          isVoiceActive = true;
+          document.getElementById('btnVoiceToggle').textContent = 'Keluar dari Suara';
+          document.getElementById('voiceBadge').textContent = 'Suara Aktif';
+          document.getElementById('voiceBadge').className = 'badge badge-success';
+          document.getElementById('btnMuteToggle').disabled = false;
+
+          initAudioMeter(localStream);
+
+          await fetch('/api/send-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'VOICE_JOIN' }),
+          });
+
+          // Connect to all peers currently in voice
+          const selfId = getSelfId();
+          if (roomState && roomState.voiceParticipants) {
+            for (const vp of roomState.voiceParticipants) {
+              if (vp.participantId !== selfId) {
+                const shouldOffer = selfId < vp.participantId;
+                createPeerConnection(vp.participantId, shouldOffer);
+              }
+            }
+          }
+        } catch (err) {
+          alert('Tidak bisa mengakses mikrofon laptop: ' + err.message);
+        }
+      }
+    }
+
+    function toggleMute() {
+      if (!localStream) return;
+      isMuted = !isMuted;
+      localStream.getAudioTracks().forEach(t => (t.enabled = !isMuted));
+      document.getElementById('btnMuteToggle').textContent = isMuted ? 'Bunyikan Mic' : 'Bisukan Mic';
+      fetch('/api/send-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'VOICE_MUTE_STATUS', muted: isMuted }),
+      });
+    }
+
+    function handlePeerVoiceState(participant, joined) {
+      const selfId = getSelfId();
+      if (participant.participantId === selfId) return;
+
+      if (joined && isVoiceActive) {
+        // Konvoi deterministic rule: smaller ID offers
+        const shouldOffer = selfId < participant.participantId;
+        createPeerConnection(participant.participantId, shouldOffer);
+      } else if (!joined) {
+        if (peerConnections[participant.participantId]) {
+          try { peerConnections[participant.participantId].close(); } catch {}
+          delete peerConnections[participant.participantId];
+        }
+      }
+    }
+
+    function createPeerConnection(peerId, isInitiator) {
+      if (peerConnections[peerId]) return peerConnections[peerId];
+
+      appendLog(`[WebRTC] Inisialisasi peer ke ${peerId} (isInitiator: ${isInitiator})`);
+      const pc = new RTCPeerConnection({ iceServers: [] });
+      peerConnections[peerId] = pc;
+
+      if (localStream) {
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      }
+
+      pc.ontrack = e => {
+        appendLog(`[WebRTC] Menerima audio track remote dari ${peerId}!`);
+        const audio = document.getElementById('remoteAudio');
+        audio.srcObject = e.streams[0];
+        audio.play().catch(e => console.warn('Audio play autoplay error:', e));
+      };
+
+      pc.onicecandidate = e => {
+        if (e.candidate) {
+          fetch('/api/send-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'VOICE_SIGNAL',
+              targetId: peerId,
+              signal: {
+                kind: 'ice-candidate',
+                candidate: e.candidate.candidate,
+                sdpMid: e.candidate.sdpMid,
+                sdpMLineIndex: e.candidate.sdpMLineIndex,
+              },
+            }),
+          });
+        }
+      };
+
+      if (isInitiator) {
+        pc.createOffer().then(offer => {
+          pc.setLocalDescription(offer);
+          appendLog(`[WebRTC] Mengirim offer ke ${peerId}`);
+          fetch('/api/send-action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'VOICE_SIGNAL',
+              targetId: peerId,
+              signal: { kind: 'offer', sdp: offer.sdp },
+            }),
+          });
+        });
+      }
+
+      return pc;
+    }
+
+    async function handleIncomingVoiceSignal(fromId, signal) {
+      appendLog(`[WebRTC In] Sinyal dari ${fromId}: ${signal.kind}`);
+      const pc = peerConnections[fromId] || createPeerConnection(fromId, false);
+
+      if (signal.kind === 'offer') {
+        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: signal.sdp }));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        appendLog(`[WebRTC] Mengirim answer ke ${fromId}`);
+        fetch('/api/send-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'VOICE_SIGNAL',
+            targetId: fromId,
+            signal: { kind: 'answer', sdp: answer.sdp },
+          }),
+        });
+      } else if (signal.kind === 'answer') {
+        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: signal.sdp }));
+      } else if (signal.kind === 'ice-candidate') {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate({
+            candidate: signal.candidate,
+            sdpMid: signal.sdpMid,
+            sdpMLineIndex: signal.sdpMLineIndex,
+          }));
+        } catch (e) {
+          console.warn('Gagal menambahkan ICE candidate:', e);
+        }
+      }
+    }
+
+    function initAudioMeter(stream) {
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 64;
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        const fill = document.getElementById('audioMeterFill');
+
+        function updateMeter() {
+          if (!isVoiceActive) {
+            fill.style.width = '0%';
+            return;
+          }
+          analyser.getByteFrequencyData(data);
+          let sum = 0;
+          for (let i = 0; i < data.length; i++) sum += data[i];
+          const avg = sum / data.length;
+          fill.style.width = Math.min(100, Math.round((avg / 128) * 100)) + '%';
+          requestAnimationFrame(updateMeter);
+        }
+        updateMeter();
+      } catch {}
+    }
+
+    // -------------------------------------------------------------
+    // GPS SIMULATION & DISTANCE
+    // -------------------------------------------------------------
+    function toggleGpsSharing() {
+      if (isGpsSharing) {
+        isGpsSharing = false;
+        clearInterval(gpsInterval);
+        gpsInterval = null;
+        document.getElementById('btnGpsToggle').textContent = 'Mulai Berbagi Lokasi GPS';
+        document.getElementById('gpsBadge').textContent = 'GPS Mati';
+        document.getElementById('gpsBadge').className = 'badge badge-neutral';
+
+        fetch('/api/send-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'LOCATION_SHARING_STOP' }),
+        });
+      } else {
+        isGpsSharing = true;
+        document.getElementById('btnGpsToggle').textContent = 'Hentikan Berbagi Lokasi';
+        document.getElementById('gpsBadge').textContent = 'Memancarkan GPS';
+        document.getElementById('gpsBadge').className = 'badge badge-success';
+
+        fetch('/api/send-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'LOCATION_SHARING_STATUS', sharing: true }),
+        });
+
+        sendGpsUpdateNow();
+        gpsInterval = setInterval(sendGpsUpdateNow, 3000);
+      }
+    }
+
+    function sendGpsUpdateNow() {
+      let lat = parseFloat(document.getElementById('gpsLat').value) || -6.17539;
+      let lon = parseFloat(document.getElementById('gpsLon').value) || 106.82715;
+      const speedKm = parseFloat(document.getElementById('gpsSpeed').value) || 45;
+
+      // Small jitter simulation if driving
+      lat += (Math.random() - 0.5) * 0.00008;
+      lon += (Math.random() - 0.5) * 0.00008;
+      document.getElementById('gpsLat').value = lat.toFixed(5);
+      document.getElementById('gpsLon').value = lon.toFixed(5);
+
+      fetch('/api/send-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'LOCATION_UPDATE',
+          location: {
+            lat: lat,
+            lon: lon,
+            accuracy: 8,
+            speed: speedKm / 3.6,
+            heading: 120,
+            capturedAt: Date.now(),
+          },
+        }),
+      });
+      appendLog(`[GPS Out] Koordinat dipancarkan: ${lat.toFixed(5)}, ${lon.toFixed(5)} (${speedKm} km/j)`);
+    }
+
+    function updateDistanceDisplay(peerId, peerLoc) {
+      const myLat = parseFloat(document.getElementById('gpsLat').value);
+      const myLon = parseFloat(document.getElementById('gpsLon').value);
+      if (!myLat || !myLon || !peerLoc) return;
+
+      const d = calcDistance(myLat, myLon, peerLoc.lat, peerLoc.lon);
+      const text = d < 1000 ? `${d} m` : `${(d / 1000).toFixed(1)} km`;
+      document.getElementById('distanceBadgeRow').textContent = `Jarak real-time ke ${peerId}: ${text}`;
+    }
+
+    function calcDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLon = ((lon2 - lon1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    // Init
+    loadInfo();
+    initSSE();
+  </script>
+</body>
+</html>
