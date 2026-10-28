@@ -1,5 +1,7 @@
 # Networking
 
+> **Build Policy:** NEVER run Gradle (./gradlew) on local laptop. Native Android and iOS builds must ALWAYS be executed in GitHub Actions.
+
 Transport, discovery, and room lifecycle for Konvoi. Product requirements live
 in [`SPEC.md`](SPEC.md). This document describes what the code actually does and
 what is still unverified.
@@ -23,14 +25,13 @@ what is still unverified.
 - Voice is an audio mesh: each pair of voice participants gets one
   `RTCPeerConnection`. The lexicographically smaller participant ID offers; the
   other answers. There is no STUN or TURN (`iceServers: []`).
-- Room capacity is 12 including the host; voice capacity is 6 by default.
+- Room capacity is 16 including the host; voice capacity is 16 concurrent.
 
 ## Addresses and ports
 
 - The host binds a TCP listener to `0.0.0.0` on an OS-assigned port
   (`port: 0`). The bound port is shown on the host screen.
-- Guests connect to the host's LAN address and that port. Manual IP + port + PIN
-  entry is mandatory and always available.
+- Guests connect via Camera QR Code scan (1-tap join without typing PIN), mDNS discovery, or manual IP + port + 6-digit PIN entry.
 - **Known limitation:** the app does not auto-detect the host's own LAN IPv4
   address. `react-native-zeroconf` exposes remote service addresses, not the
   local device address, and no local-IP native module is installed yet. The host
@@ -172,3 +173,14 @@ two physical phones on a WAN-less network must verify:
 
 Record the devices, OS versions, and network used. Until then, treat the
 transport as **unverified**.
+
+
+## Web Tester & Simulator Tool
+
+For developers with only one physical mobile phone, an offline Node.js web simulator is provided in web-tester/:
+
+\sh
+npm run test:web
+\\r
+
+Opens at http://localhost:3000. It implements the full NDJSON protocol, automatic 10-second PING/PONG heartbeats, WebRTC audio mesh negotiation, QR code generation, and simulated GPS location sharing.

@@ -1,5 +1,7 @@
 # Voice and Bluetooth
 
+> **Build Policy:** NEVER run Gradle (./gradlew) locally on laptop. Native Android APKs and iOS builds must ALWAYS be compiled via GitHub Actions.
+
 Audio design, microphone lifecycle, and the Bluetooth realities for Konvoi.
 Product requirements live in [`SPEC.md`](SPEC.md); transport and discovery live
 in [`NETWORKING.md`](NETWORKING.md). This document describes what the code does

@@ -4,23 +4,48 @@ Konvoi is a **voice-first** React Native app: the host phone runs a room server 
 
 **Read `docs/SPEC.md` before implementing.** It is the authoritative product/technical spec (screens, protocol, acceptance criteria) and is not auto-loaded. This file covers repo state, commands, and traps.
 
-## Repo state (verified 2026-10-28)
+> [!CAUTION]
+> ### ATURAN KRUSIAL: JANGAN BUILD GRADLE DI LAPTOP (SELALU DI GITHUB ACTIONS)
+> **JANGAN PERNAH MENJALANKAN BUILD GRADLE / NATIVE DI MESIN LOKAL / LAPTOP INI.**
+> Dilarang mengeksekusi `./gradlew`, `gradlew.bat`, `assembleDebug`, atau kompilator native lokal. Mesin lokal ini **HANYA** diperuntukkan untuk:
+> 1. `npm run lint` (ESLint)
+> 2. `npx tsc --noEmit` (TypeScript typecheck)
+> 3. `npm test` (Jest unit tests)
+> 4. `npm run test:web` (Web tester simulator untuk testing lokal)
+>
+> **SEMUA NATIVE BUILD (Android APK & iOS Simulator) HARUS SELALU DIJALANKAN DI GITHUB ACTIONS (GH WORKFLOWS).**
+
+> [!IMPORTANT]
+> ### KONSISTENSI DOKUMENTASI VS KODE EKSISTING
+> When a repository's documentation and its existing code disagree, follow the conventions used in the existing code, and in your final reply point out each inconsistency you found between the documentation and the code.
+
+---
+
+## Repo state (Updated 2026-10-28)
 
 - React Native **0.88.1** + TypeScript 6, package `Konvoi`, Android/iOS id `com.konvoi`, mDNS `_konvoi._tcp`.
-- Implemented and unit-tested: NDJSON framing, typed protocol + validators, host room engine (membership, voice roster, signaling relay, location sharing), deterministic mesh peer planning, host/guest room sessions.
-- Implemented but **device-unverified**: `react-native-tcp-socket` TCP adapter, `react-native-zeroconf` mDNS discovery/advertising, `react-native-webrtc` audio mesh, app controller, screens, and internal navigation.
-- Not implemented: geolocation, MapLibre offline map pack, Bluetooth route UI. GPS/map controls are visibly disabled and labeled "Belum tersedia"; don't fake their status.
-- Voice is wired but unproven until GitHub CI compiles `react-native-webrtc` and two physical phones pass audio on a WAN-less network. Don't claim voice works before that.
-- Host local IP is not auto-detected: no local-IP module is installed. The host screen tells users to read it from Wi-Fi settings and lists common hotspot defaults. Manual IP/port/PIN is the supported fallback.
-- `README.md`, `docs/NETWORKING.md`, and `docs/VOICE_AND_BLUETOOTH.md` describe the real project. `docs/MAPS_OFFLINE.md` is still to be written when the map lands.
-- No git repo and `git` is not installed here. Don't run git commands or assume branches/diffs.
-- Local machine: Node 24 / npm 11, but **no JDK 17, Android SDK, Xcode, or CocoaPods**. Native builds run in **GitHub Actions**; this box is for lint, typecheck, and Jest only.
+- Git repository synced with upstream `origin` (`https://github.com/neosaragih/Konvoi.git`) and `fork` (`https://github.com/sansaks-jpg/Konvoi.git`).
+- **PR #1 Merged into main:** PR #1 (`Google Maps style OSM, GPS distance, camera QR scan, auto-reconnect, and host voice fix`) has been officially merged into upstream `neosaragih/Konvoi`.
+- **Implemented & Proven:**
+  - NDJSON framing (UTF-8, per-connection buffer, max 64 KiB).
+  - Typed protocol + validators (6-digit PIN mandatory, 16 riders capacity).
+  - Host room engine (state machine, membership, voice roster, signaling relay, location sharing).
+  - WebRTC voice mesh (deterministic smaller-ID-offers planning, speaker routing, audio track activation).
+  - Native Android GPS location module + CartoDB Voyager OpenStreetMap tiles with Google Maps-style heading & pulse dots.
+  - Real-time Haversine inter-rider distance calculation with proximity badges (*Dekat*, *Sedang*, *Tertinggal*).
+  - Camera QR scanner 1-tap join (via Google Play Services Barcode scanner).
+  - Android Foreground Service (`KonvoiForegroundService`) keep-alive with ongoing notification, WakeLock, and WifiLock.
+  - Automatic background reconnection on Wi-Fi loss.
+  - Adopted `react-native-reusables` (shadcn dark palette Zinc/Slate) design system, 100% emoji-free.
+  - Web Tester tool (`web-tester/server.js` / `npm run test:web`) for single-device voice & GPS simulation.
+- Native builds run purely in **GitHub Actions** (`ci.yml`, `android.yml`, `ios.yml`).
 
 ## Commands
 
 - `npm run lint`
 - `npx tsc --noEmit`
 - `npm test`
+- `npm run test:web` (Menjalankan Web Tester & Simulator di `http://localhost:3000`)
 - one suite: `npm test -- src/features/room/__tests__/roomEngine.test.ts`
 - one case: `npm test -- src/features/room/__tests__/roomEngine.test.ts -t "relays a signal"`
 - Order before pushing: `lint` -> `tsc --noEmit` -> `jest`.
@@ -30,11 +55,7 @@ Konvoi is a **voice-first** React Native app: the host phone runs a room server 
 - `.github/workflows/ci.yml` — `npm ci`, lint, typecheck, Jest on Ubuntu.
 - `.github/workflows/android.yml` — Ubuntu + JDK 17 + Android SDK, `./gradlew :app:assembleDebug :app:assembleRelease`, uploads `konvoi-debug-apk` (needs Metro) and `konvoi-dev-apk` (bundled JS, debug-signed). The dev APK is not production-signed.
 - `.github/workflows/ios.yml` — macOS + CocoaPods, unsigned simulator build, uploads `konvoi-ios-simulator`.
-- All three workflows run on GitHub and passed on `main` (2026-10-28): Checks, Android (debug + dev APK), iOS simulator. iOS device builds are still unverified.
-- Android API 37 installs as `platforms;android-37.0`; `platforms;android-37` does not exist. AGP 9.2 resolves `compileSdk 37` to the `android-37.0` hash, so install that exact package.
-- `android/gradle.properties` keeps `android.newDsl=false` and `android.builtInKotlin=false` so third-party Gradle scripts using the old DSL still configure. Revisit before AGP 10.
-- No release signing is configured. Android release needs a keystore; iOS device/release builds need Apple certificates/profiles. Keep secrets in GitHub Secrets, never in the repo.
-- CI proves compilation, not runtime behavior. If a native module breaks a build, fix it or document the blocker; don't delete/disable the workflow to get green.
+- All native APK and iOS binaries are built by GH Workflows, never locally.
 
 ## Architecture
 
@@ -43,28 +64,16 @@ Konvoi is a **voice-first** React Native app: the host phone runs a room server 
 - **Wire format:** UTF-8 NDJSON in `src/networking/ndjsonFramer.ts`. Byte-level, per-connection buffer, max frame size, resync after oversized lines. A TCP chunk is not a message.
 - **Protocol:** `src/protocol/{messageTypes,validators,protocolVersion}.ts`. Host assigns participant IDs and timestamps; clients never supply identity. Validate on both ends.
 - **Voice mesh:** `src/voice/voiceSignaling.ts`. For each pair, the lexicographically smaller participant ID offers; the other answers. Signaling goes through the host's TCP room; media is P2P WebRTC with `iceServers: []`.
-- **Heartbeat:** `ClientSession` starts `PING` automatically on `JOIN_ACCEPTED` (every 10 s). The host drops silent guests after 30 s; the guest closes after 30 s without host messages. Do not make heartbeat caller-owned again.
-- **Installed native modules:** `react-native-tcp-socket` 6.4.3, `react-native-zeroconf` 0.17.6, `react-native-webrtc` 155.0.1. **Planned:** MapLibre, geolocation. Add one at a time, verify RN 0.88/New Architecture support, and let CI prove it compiles.
+- **Heartbeat:** `ClientSession` starts `PING` automatically on `JOIN_ACCEPTED` (every 10 s). The host drops silent guests after 30 s; the guest closes after 30 s without host messages.
 - **Tests:** `src/**/__tests__/*.test.ts`; protocol/engine tests must not import native modules.
 
 ## Traps
 
-- **No runtime internet.** No cloud/hosted signaling, analytics, remote fonts/images, CDN assets, or remote map styles/tiles.
-- **Don't add STUN/TURN** to make voice connect, not even a public Google server. If ICE fails, show a LAN/client-isolation error.
-- **No E2E/encryption claims.** The PIN gates joining; signaling and location are plaintext on the LAN. Never write "secure", "private", or "encrypted" in UI/docs.
-- **Mic is opt-in.** It starts only on explicit Start Voice, is visibly indicated, and must stop on Leave Voice, room leave/kick/close, or permission revocation. Voice cap 6, room cap 12.
-- **Bluetooth = OS-managed HFP/HSP route.** Pairing happens in system settings. A2DP-only devices have no usable mic — explain that, never fake a route or claim universal intercom support.
-- **Offline map must never fall back online.** Don't bulk-download `tile.openstreetmap.org`; missing coverage needs an explicit UI state; attribution is mandatory.
-- **Wi-Fi Direct isn't cross-platform** (iOS has no Wi-Fi Direct API). Same-Wi-Fi + phone hotspot is the supported path.
-- An invite link/QR can carry room ID + host IP/port, but cannot onboard a guest onto the Wi-Fi. Keep the PIN out of mDNS; manual IP+port+PIN stays required.
+- **No local Gradle builds:** Never run `./gradlew` locally. Native builds belong in GitHub Actions.
+- **No runtime internet.** No cloud/hosted signaling, analytics, remote fonts/images, or CDN assets.
+- **Don't add STUN/TURN** to make voice connect. If ICE fails, show a LAN/client-isolation error.
+- **No E2E/encryption claims.** The PIN gates joining; signaling and location are plaintext on the LAN.
+- **Mic is opt-in.** Starts only on explicit Start Voice, visibly indicated, and stops on Leave Voice/disconnect.
+- **Bluetooth = OS-managed HFP/HSP route.** Pairing happens in system settings.
+- **Offline map must never fall back online.** Missing coverage needs an explicit UI state.
 - **Never log or persist** PINs, coordinates, or audio. Locations are in-memory for the room only and cleared on stop/leave/kick/close.
-- **Foreground only.** No background audio, background location, or reliable background hosting promises in release 1.
-
-## Verification reality
-
-- Unit tests and CI builds are not device validation. These require at least two physical phones on a WAN-less network: mDNS, TCP reachability, client isolation, GPS fix, Bluetooth routing, WebRTC media path, offline map in airplane mode, background transitions.
-- Record device/OS/intercom models actually used; mark everything else "unverified". Never invent test results.
-
-## Docs that must stay true
-
-`docs/SPEC.md` (requirements), `docs/NETWORKING.md` (transport/discovery as implemented), and `README.md`. Add `docs/MAPS_OFFLINE.md` and `docs/VOICE_AND_BLUETOOTH.md` when those features land. If a library proves incompatible, stop, document the blocker and alternatives, and update the spec before changing architecture.

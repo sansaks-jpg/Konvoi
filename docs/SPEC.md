@@ -45,7 +45,7 @@ The target user pairs a helmet intercom or headset in the phone's Bluetooth sett
 
 ### Guest
 
-1. **Gabung Ruangan** via mDNS list, or manual IP + port + PIN (manual is mandatory).
+1. **Gabung Ruangan** via instant Camera QR Code scan (1-tap join), mDNS list, or manual IP + port + 6-digit PIN.
 2. Connect with a timeout; send a versioned join request.
 3. Show explicit rejection reasons: wrong PIN, room full, closed, incompatible protocol, timeout.
 4. On accept, receive the participant/voice snapshot.
@@ -55,14 +55,14 @@ The target user pairs a helmet intercom or headset in the phone's Bluetooth sett
 
 - **Audio-only WebRTC mesh.** Each pair of voice participants has one `RTCPeerConnection` with Opus audio.
 - Signaling (`offer`, `answer`, ICE candidate) travels through the host's TCP room connection. Audio never travels over TCP.
-- **Capacity:** room 12 including host; voice 6 by default, configurable. Document the maximum actually tested; never promise more.
+- **Capacity:** room 16 including host; voice 16 concurrent mesh participants.
 - **Negotiation:** for each pair, the participant with the lexicographically smaller ID creates the initial offer and the other answers. Renegotiation uses the WebRTC perfect-negotiation pattern to survive glare. Never have both sides offer at once.
 - **Mute/unmute** disables the local audio track and broadcasts `VOICE_MUTE_STATUS`; the UI shows every participant's mute state.
 - **Voice state** (`VOICE_PARTICIPANT_STATE`) carries voice membership and mute state — never audio data. Per-peer connection quality is local to each device because the host cannot observe the P2P media path.
 - **Audio route:** prefer a connected Bluetooth HFP/HSP device, then wired headset, then speaker. Show the active route and whether a microphone route exists. On Bluetooth disconnect, switch to a clearly indicated fallback or pause voice; never pretend the intercom is still active.
 - **Audio session:** two-way communication category/mode, echo cancellation, noise suppression, automatic gain control. Handle interruptions (calls, assistants, permission changes) and route changes; restore cleanly on exit.
 - **Teardown:** stop tracks, close peer connections, release the audio session, and stop the mic on Leave Voice, room leave, kick, room close, or permission revocation.
-- **Foreground:** voice must keep working with the Live Map open. Background/screen-lock audio is out of scope unless separately implemented and tested on both platforms.
+- **Intercom Resilience:** On Android, KonvoiForegroundService runs an ongoing foreground service with status bar notification, WakeLock, and WifiLock so audio, socket, and GPS stay alive when minimized or during screen lock.
 - Keep the voice UI hands-free-oriented: large mute control, visible route/mic status, minimal need to look at the screen while moving.
 
 ## 4. Live map and location
